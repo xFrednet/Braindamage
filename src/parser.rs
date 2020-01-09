@@ -15,7 +15,8 @@ pub fn parse_str(script: &str) -> Vec<Operation> {
     let script = script.to_ascii_lowercase();
     let mut instructions = script.chars();
 
-    parse_block(&mut instructions, END_OF_STRING)
+    let ops = parse_block(&mut instructions, END_OF_STRING);
+    aggregate_same(ops)
 }
 
 fn parse_block(instructions : &mut Chars, block_end: char) -> Vec<Operation> {
@@ -54,4 +55,36 @@ fn parse_block(instructions : &mut Chars, block_end: char) -> Vec<Operation> {
     }
 
     ops
+}
+
+fn aggregate_same(mut ops: Vec<Operation>) -> Vec<Operation> {
+    let mut result = Vec::new();
+    let mut iter = ops.drain(0..);
+    let mut last_item = iter.next().unwrap_or(Operation::NoOp);
+
+    loop {
+        let item = iter.next();
+        if item.is_none() {
+            break;
+        }
+        let item = item.unwrap();
+
+        // Test for join
+        if last_item.can_join(&item) {
+            last_item = last_item.join(&item);
+        } else {
+            result.push(match last_item {
+                Operation::Loop(loop_ops) => Operation::Loop(aggregate_same(loop_ops)),
+                x => x
+            });
+
+            last_item = item;
+        }
+    }
+
+    result.push(match last_item {
+        Operation::Loop(loop_ops) => Operation::Loop(aggregate_same(loop_ops)),
+        x => x
+    });
+    result
 }

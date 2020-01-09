@@ -1,5 +1,5 @@
 use std::io;
-use crate::{BufType, PtrType};
+use crate::{BufType};
 
 #[derive(Debug)]
 pub struct BrainfuckBuffer {
