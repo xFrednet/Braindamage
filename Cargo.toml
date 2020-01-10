@@ -1,5 +1,5 @@
 [package]
-name = "rusting_brainfuck_interpreter"
+name = "braindamage"
 version = "0.1.0"
 authors = ["xFrednet <xFrednet@gmail.com>"]
 edition = "2018"
