@@ -1,9 +1,10 @@
 pub mod file_io;
 
+const BUFFER_END_VALUE : u8 = 0;
+const RET_IO_OK: u8 = 0;
+const RET_IO_ERR: u8 = 1;
+
 pub trait BraindamageIo<T> {
-    const BUFFER_END_VALUE : u8 = 0;
-    const RET_IO_OK: u8 = 0;
-    const RET_IO_ERR: u8 = 1;
 
     fn read(&mut self) -> T;
 
