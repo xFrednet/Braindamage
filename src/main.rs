@@ -2,6 +2,7 @@ mod cell;
 pub use cell::Cell;
 
 mod buffer;
+mod io;
 
 mod parser;
 mod ops_walker;
