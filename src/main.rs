@@ -11,7 +11,8 @@ pub type BufType = u8;
 pub type PtrType = u32;
 
 fn main() {
-    let code = parser::parse_str("++++++++++[>+>+++>+++++++>++++++++++<<<<-]>>>++.>+.+++++++..+++.<<++.>+++++++++++++++.>.+++.------.--------.<<+.<.");
+    let code = parser::parse_str("++++++++++[>+>+++>+++++++>++++++++++<<<<-]>>>++.>+.+++++++..+++.<<++.>+++++++++++++++.>.+++.------.--------.<<+.<.[-]--");
+    //let code = parser::parse_str("--");
     //println!("OpCode: {:?}", code);
 
     ops_walker::exec_ops(&code);

@@ -4,7 +4,8 @@ use crate::buffer::BrainfuckBuffer;
 
 pub fn exec_ops(ops: &Vec<Operation>) {
     let mut buffer = BrainfuckBuffer::default();
-    walk_ops(ops, &mut buffer)
+    walk_ops(ops, &mut buffer);
+    println!("{:?}", buffer);
 }
 
 fn walk_ops(ops: &Vec<Operation>, buffer: &mut BrainfuckBuffer) {
@@ -19,7 +20,7 @@ fn walk_ops(ops: &Vec<Operation>, buffer: &mut BrainfuckBuffer) {
             Operation::IoWrite => {buffer.write()},
             Operation::Loop(loop_ops) => {
                 let break_value: BufType = BufType::default();
-                while buffer.get_value() != break_value {
+                while buffer.get_value(buffer.index) != break_value {
                     walk_ops(loop_ops, buffer)
                 }
             }
