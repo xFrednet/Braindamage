@@ -9,4 +9,4 @@
 mod instruction;
 pub use instruction::Instruction;
 
-mod io;
+pub(crate) mod io;

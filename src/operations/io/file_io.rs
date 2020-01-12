@@ -17,7 +17,7 @@ pub struct FileIo<'a, T: Cell> {
 impl<'a, T> FileIo<'a, T>
     where T: Cell
 {
-    fn new(file_name: &'a str) -> Self {
+    pub(crate) fn new(file_name: &'a str) -> Self {
         FileIo {
             file: file_name,
 
