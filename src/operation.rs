@@ -1,21 +1,32 @@
-use crate::BufType;
+use crate::Cell;
+
+//    +,-
+//   {^.°}
+//   <[@]>
+//    : ;
+//
+// Meet BDB the BrainDamageBot he is here to make sure that
+// all code is awesome and readable
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
-pub enum Operation {
+pub enum Operation<T: Cell> {
     NoOp,
     IncreaseIndex(usize),
     DecreaseIndex(usize),
-    IncreaseValue(BufType),
-    DecreaseValue(BufType),
+    IncreaseValue(T),
+    DecreaseValue(T),
     IoRead,
     IoWrite,
-    Loop(Vec<Operation>),
+    Loop(Vec<Operation<T>>),
 }
 
-impl Operation {
+impl<T> Operation<T>
+    where
+        T: Cell
+{
 
-    pub fn can_join(&self, other: &Operation) -> bool {
+    pub fn can_join(&self, other: &Operation<T>) -> bool {
         match (self, other) {
             (Operation::IncreaseIndex(_), Operation::IncreaseIndex(_)) |
             (Operation::DecreaseIndex(_), Operation::DecreaseIndex(_)) |
@@ -27,13 +38,13 @@ impl Operation {
         }
     }
 
-    pub fn join(self, other: &Operation) -> Operation {
-        match self {
-            Operation::IncreaseIndex(x) => {Operation::IncreaseIndex(x + match other {Operation::IncreaseIndex(x) => x.clone(), _ => 0})},
-            Operation::DecreaseIndex(x) => {Operation::DecreaseIndex(x + match other {Operation::DecreaseIndex(x) => x.clone(), _ => 0})},
-            Operation::IncreaseValue(x)   => {Operation::IncreaseValue(x + match other {Operation::IncreaseValue(x) => x.clone(), _ => 0})},
-            Operation::DecreaseValue(x)   => {Operation::DecreaseValue(x + match other {Operation::DecreaseValue(x) => x.clone(), _ => 0})},
-            x => x
+    pub fn join(self, other: Operation<T>) -> Operation<T> {
+        match (self, other) {
+            (Operation::IncreaseIndex(x), Operation::IncreaseIndex(y)) => Operation::IncreaseIndex(x + y),
+            (Operation::DecreaseIndex(x), Operation::DecreaseIndex(y)) => Operation::DecreaseIndex(x + y),
+            (Operation::IncreaseValue(x)   , Operation::IncreaseValue(y  )) => Operation::IncreaseValue(x + y),
+            (Operation::DecreaseValue(x)   , Operation::DecreaseValue(y  )) => Operation::DecreaseValue(x + y),
+            (this, _) => this
         }
     }
 

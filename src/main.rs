@@ -1,7 +1,9 @@
+mod cell;
+pub use cell::Cell;
+
 mod buffer;
 
 mod parser;
-
 mod ops_walker;
 mod operation;
 pub use operation::Operation;

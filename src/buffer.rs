@@ -1,71 +1,40 @@
-use std::io;
-use crate::{BufType, ARRAY_SIZE};
+use crate::{ARRAY_SIZE};
+use crate::cell::Cell;
 use std::num::Wrapping;
-use std::fmt::{Debug, Formatter, Error};
-use std::cmp::{min};
+use std::fmt::{Formatter, Error, Debug};
+use std::cmp::min;
 
-pub struct BrainfuckBuffer {
-    buffer: Vec<BufType>,
+pub struct VecBuffer<T: Cell> {
+    buffer: Vec<T>,
     pub index: usize
 }
 
-impl BrainfuckBuffer {
+impl<T> VecBuffer<T>
+    where
+        T: Cell
+{
     pub fn inc_index(&mut self, value: usize) {
         self.index = (Wrapping(self.index) + Wrapping(value)).0 % crate::ARRAY_SIZE;
     }
-
     pub fn dec_index(&mut self, value: usize) {
         self.index = (Wrapping(self.index) - Wrapping(value)).0 % crate::ARRAY_SIZE;
     }
 
-    pub fn inc_value(&mut self, value: BufType) {
-        self.buffer[self.index] = (Wrapping(self.buffer[self.index]) + Wrapping(value)).0;
+    pub fn inc_value(&mut self, value: &T) {
+        self.buffer[self.index] = self.buffer[self.index].add_overflow(value);
+    }
+    pub fn dec_value(&mut self, value: &T) {
+        self.buffer[self.index] = self.buffer[self.index].sub_overflow(value);
     }
 
-    pub fn dec_value(&mut self, value: BufType) {
-        self.buffer[self.index] = (Wrapping(self.buffer[self.index]) - Wrapping(value)).0;
+    pub fn set_value(&mut self, index: usize, value: T) {
+        self.buffer[index] = value;
     }
-
-    pub fn read(&mut self) {
-        let mut buffer = String::new();
-        let result = io::stdin().read_line(&mut buffer);
-
-        if result.is_ok() {
-            self.buffer[self.index] = buffer.bytes().next().unwrap_or_default();
-        }
-    }
-
-    pub fn write(&mut self) {
-        print!("{}", char::from(self.buffer[self.index]))
-    }
-
-    pub fn get_value(&self, index: usize) -> u8 {
-        // TODO Deal with high index values >= ARRAY_SIZE
-
+    pub fn get_value(&self, index: usize) -> T {
         self.buffer[index]
     }
-}
 
-impl Default for BrainfuckBuffer {
-    fn default() -> Self {
-        let mut vec = Vec::new();
-        vec.resize(crate::ARRAY_SIZE, BufType::default());
-
-        BrainfuckBuffer {
-            buffer: vec,
-            index: 0
-        }
-    }
-}
-
-impl Debug for BrainfuckBuffer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        self.write_buffer(f, 0, 4096)
-    }
-}
-
-impl BrainfuckBuffer {
-    fn write_buffer(&self, f: &mut Formatter<'_>, start: usize, end: usize) -> Result<(), Error> {
+    pub fn write_buffer(&self, f: &mut Formatter<'_>, start: usize, end: usize) -> Result<(), Error> {
         const ROW_SIZE: usize = 32;
         const SEPARATOR: usize = 8;
 
@@ -86,7 +55,7 @@ impl BrainfuckBuffer {
                 write!(f, "{:02X} ", value).unwrap();
 
                 // Save the ascii char for the output
-                let char_value = char::from(value);
+                let char_value: char = value.to_char();
                 if char_value.is_alphanumeric() {
                     ascii.push(char_value);
                 } else {
@@ -106,5 +75,29 @@ impl BrainfuckBuffer {
         }
 
         write!(f, "}}")
+    }
+}
+
+impl<T> Default for VecBuffer<T>
+    where
+        T: Cell
+{
+    fn default() -> Self {
+        let mut vec: Vec<T> = Vec::new();
+        vec.resize(crate::ARRAY_SIZE, T::default());
+
+        VecBuffer {
+            buffer: vec,
+            index: 0
+        }
+    }
+}
+
+impl<T> Debug for VecBuffer<T>
+    where
+        T: Cell
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        self.write_buffer(f, 0, 4096)
     }
 }
