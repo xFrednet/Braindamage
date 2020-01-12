@@ -98,6 +98,6 @@ impl<T> Debug for VecBuffer<T>
         T: Cell
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        self.write_buffer(f, 0, 4096)
+        self.write_buffer(f, 0, 128)
     }
 }

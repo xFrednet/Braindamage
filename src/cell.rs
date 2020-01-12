@@ -3,9 +3,11 @@ use std::fmt::{Debug, UpperHex};
 use std::ops::{Sub, Add};
 
 pub trait Cell:
-    Copy + Clone + PartialEq +
+    Copy + Clone +
     Add<Output=Self> + Sub<Output=Self> +
+    PartialEq<Self> +
     Default + From<u8> +
+    Sized +
     Debug + UpperHex
 {
     fn add_overflow(&self, other: &Self) -> Self;
@@ -14,7 +16,12 @@ pub trait Cell:
     fn to_char(&self) -> char;
 }
 
-impl Cell for u8 {
+pub trait IntCell: Cell {}
+
+impl<T: IntCell> Cell for T
+    where
+        Wrapping<T>: Add<Output=Wrapping<T>> + Sub<Output=Wrapping<T>>
+{
     fn add_overflow(&self, other: &Self) -> Self {
         (Wrapping(*self) + Wrapping(*other)).0
     }
@@ -24,34 +31,19 @@ impl Cell for u8 {
     }
 
     fn to_char(&self) -> char {
-        char::from(*self)
+        let data = unsafe {
+            std::slice::from_raw_parts(
+                (self as *const Self) as *const u8,
+                ::std::mem::size_of::<Self>(),
+            )
+        };
+
+        char::from(data[0])
     }
 }
 
-impl Cell for u16 {
-    fn add_overflow(&self, other: &Self) -> Self {
-        (Wrapping(*self) + Wrapping(*other)).0
-    }
+impl IntCell for u8 {}
 
-    fn sub_overflow(&self, other: &Self) -> Self {
-        (Wrapping(*self) - Wrapping(*other)).0
-    }
+impl IntCell for u16 {}
 
-    fn to_char(&self) -> char {
-        unimplemented!()
-    }
-}
-
-impl Cell for u32 {
-    fn add_overflow(&self, other: &Self) -> Self {
-        (Wrapping(*self) + Wrapping(*other)).0
-    }
-
-    fn sub_overflow(&self, other: &Self) -> Self {
-        (Wrapping(*self) - Wrapping(*other)).0
-    }
-
-    fn to_char(&self) -> char {
-        unimplemented!()
-    }
-}
+impl IntCell for u32 {}
