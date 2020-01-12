@@ -1,17 +1,22 @@
+//    +,-
+//   {^.°}
+//   <[@]>
+//    : ;
+//
+// Meet BDB the BrainDamageBot he is here to make sure that
+// all code is awesome and readable
+
 mod cell;
+mod buffer;
 pub use cell::Cell;
 
-mod buffer;
-mod io;
+mod operations;
+pub use operations::Instruction;
 
 mod parser;
 mod ops_walker;
-mod operation;
-pub use operation::Operation;
 
 pub const ARRAY_SIZE: usize = 30_000;
-pub type BufType = u8;
-pub type PtrType = u32;
 
 fn main() {
     let code = parser::parse_str("++++++++++[>+>+++>+++++++>++++++++++<<<<-]>>>++.>+.+++++++..+++.<<++.>+++++++++++++++.>.+++.------.--------.<<+.<.[-]--");

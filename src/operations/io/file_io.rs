@@ -1,10 +1,11 @@
-use crate::io::BraindamageIo;
 use std::fs::File;
 use std::io::{Write, Read};
 use std::{slice, mem};
-use crate::io;
+use crate::operations::io;
+use crate::operations::io::BraindamageIo;
+use crate::Cell;
 
-pub struct FileIo<'a, T> {
+pub struct FileIo<'a, T: Cell> {
     file: &'a str,
 
     r_buffer: Vec<T>,
@@ -14,7 +15,7 @@ pub struct FileIo<'a, T> {
 }
 
 impl<'a, T> FileIo<'a, T>
-    where T: Clone + PartialEq<T> + From<u8>
+    where T: Cell
 {
     fn new(file_name: &'a str) -> Self {
         FileIo {
@@ -31,7 +32,7 @@ impl<'a, T> FileIo<'a, T>
         self.r_buffer.clear();
         self.r_index = 0;
 
-        let mut file = File::open(self.file);
+        let file = File::open(self.file);
         if file.is_ok() {
             let mut file = file.unwrap();
             let mut buffer = Vec::new();
@@ -69,7 +70,7 @@ impl<'a, T> FileIo<'a, T>
 }
 
 impl<'a, T> BraindamageIo<T> for FileIo<'a, T>
-    where T: Clone + PartialEq<T> + From<u8> + Default
+    where T: Cell
 {
     fn read(&mut self) -> T {
         if self.r_index == 0 {

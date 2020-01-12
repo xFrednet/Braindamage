@@ -1,4 +1,4 @@
-use crate::{Operation, Cell};
+use crate::{Instruction, Cell};
 use std::str::Chars;
 
 const OP_INC_INDEX: char = '>';
@@ -11,7 +11,7 @@ const OP_LOOP_START: char = '[';
 const OP_LOOP_END: char = ']';
 const END_OF_STRING: char = '\0';
 
-pub fn parse_str<T>(script: &str) -> Vec<Operation<T>>
+pub fn parse_str<T>(script: &str) -> Vec<Instruction<T>>
     where
         T: Cell
 {
@@ -22,11 +22,11 @@ pub fn parse_str<T>(script: &str) -> Vec<Operation<T>>
     aggregate_same(ops)
 }
 
-fn parse_block<T>(instructions : &mut Chars, block_end: char) -> Vec<Operation<T>>
+fn parse_block<T>(instructions : &mut Chars, block_end: char) -> Vec<Instruction<T>>
     where
         T: Cell
 {
-    let mut ops: Vec<Operation<T>> = Vec::new();
+    let mut ops: Vec<Instruction<T>> = Vec::new();
 
     loop {
         // Get the char
@@ -46,16 +46,16 @@ fn parse_block<T>(instructions : &mut Chars, block_end: char) -> Vec<Operation<T
         }
 
         ops.push(match inst {
-            OP_INC_INDEX  => Operation::IncreaseIndex(1),
-            OP_DEC_INDEX  => Operation::DecreaseIndex(1),
-            OP_INC_VALUE  => Operation::IncreaseValue(T::from(1u8)),
-            OP_DEC_VALUE  => Operation::DecreaseValue(T::from(1u8)),
-            OP_IO_READ    => Operation::IoRead,
-            OP_IO_WRITE   => Operation::IoWrite,
-            OP_LOOP_START => Operation::Loop(parse_block(instructions, OP_LOOP_END)),
+            OP_INC_INDEX  => Instruction::IncreaseIndex(1),
+            OP_DEC_INDEX  => Instruction::DecreaseIndex(1),
+            OP_INC_VALUE  => Instruction::IncreaseValue(T::from(1u8)),
+            OP_DEC_VALUE  => Instruction::DecreaseValue(T::from(1u8)),
+            OP_IO_READ    => Instruction::IoRead,
+            OP_IO_WRITE   => Instruction::IoWrite,
+            OP_LOOP_START => Instruction::Loop(parse_block(instructions, OP_LOOP_END)),
             _ => {
                 eprintln!("Error the char \'{}\' is not a valid instruction.", inst);
-                Operation::NoOp
+                Instruction::NoOp
             }
         })
     }
@@ -63,13 +63,13 @@ fn parse_block<T>(instructions : &mut Chars, block_end: char) -> Vec<Operation<T
     ops
 }
 
-fn aggregate_same<T>(mut ops: Vec<Operation<T>>) -> Vec<Operation<T>>
+fn aggregate_same<T>(mut ops: Vec<Instruction<T>>) -> Vec<Instruction<T>>
     where
         T: Cell
 {
     let mut result = Vec::new();
     let mut iter = ops.drain(0..);
-    let mut last_item = iter.next().unwrap_or(Operation::NoOp);
+    let mut last_item = iter.next().unwrap_or(Instruction::NoOp);
 
     loop {
         let item = iter.next();
@@ -83,7 +83,7 @@ fn aggregate_same<T>(mut ops: Vec<Operation<T>>) -> Vec<Operation<T>>
             last_item = last_item.join(item);
         } else {
             result.push(match last_item {
-                Operation::Loop(loop_ops) => Operation::Loop(aggregate_same(loop_ops)),
+                Instruction::Loop(loop_ops) => Instruction::Loop(aggregate_same(loop_ops)),
                 x => x
             });
 
@@ -92,7 +92,7 @@ fn aggregate_same<T>(mut ops: Vec<Operation<T>>) -> Vec<Operation<T>>
     }
 
     result.push(match last_item {
-        Operation::Loop(loop_ops) => Operation::Loop(aggregate_same(loop_ops)),
+        Instruction::Loop(loop_ops) => Instruction::Loop(aggregate_same(loop_ops)),
         x => x
     });
     result
