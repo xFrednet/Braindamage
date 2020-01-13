@@ -1,6 +1,5 @@
 use crate::{ARRAY_SIZE};
 use crate::cell::Cell;
-use std::num::Wrapping;
 use std::fmt::{Formatter, Error, Debug};
 use std::cmp::min;
 
@@ -13,20 +12,6 @@ impl<T> VecBuffer<T>
     where
         T: Cell
 {
-    pub fn inc_index(&mut self, value: usize) {
-        self.index = (Wrapping(self.index) + Wrapping(value)).0 % crate::ARRAY_SIZE;
-    }
-    pub fn dec_index(&mut self, value: usize) {
-        self.index = (Wrapping(self.index) - Wrapping(value)).0 % crate::ARRAY_SIZE;
-    }
-
-    pub fn inc_value(&mut self, value: &T) {
-        self.buffer[self.index] = self.buffer[self.index].add_overflow(value);
-    }
-    pub fn dec_value(&mut self, value: &T) {
-        self.buffer[self.index] = self.buffer[self.index].sub_overflow(value);
-    }
-
     pub fn set_value(&mut self, index: usize, value: T) {
         self.buffer[index] = value;
     }

@@ -3,6 +3,7 @@ use std::fmt::{Debug, UpperHex};
 use std::ops::{Sub, Add};
 
 pub trait Cell:
+    'static +
     Copy + Clone +
     Add<Output=Self> + Sub<Output=Self> +
     PartialEq<Self> +
