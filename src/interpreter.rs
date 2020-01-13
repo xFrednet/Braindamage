@@ -17,7 +17,6 @@ pub struct Interpreter<'a, T: Cell> {
     instructions: &'a Vec<Instruction<T>>,
 
     console_io: Box<dyn BraindamageIo<T>>,
-    #[allow(dead_code)]
     file_io: Box<dyn BraindamageIo<T>>,
 
 }
@@ -53,8 +52,6 @@ impl<'a, T> Interpreter<'a, T>
 
     pub fn run(&mut self) {
         self.execute(self.instructions);
-
-        println!("{:?}", self.buffer);
     }
 
     fn execute(&mut self, instructions: &Vec<Instruction<T>>) {
@@ -107,5 +104,9 @@ impl<'a, T> Interpreter<'a, T>
                 }
             }
         }
+    }
+
+    pub fn dump_memory(&self) {
+        println!("{:?}", self.buffer);
     }
 }

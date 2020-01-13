@@ -58,7 +58,6 @@ fn parse_block<T>(instructions : &mut Chars, block_end: char) -> Vec<Instruction
             OP_FILE_IO_READ => Instruction::FileIoRead,
             OP_FILE_IO_WRITE => Instruction::FileIoWrite,
             _ => {
-                eprintln!("Error the char \'{}\' is not a valid instruction.", inst);
                 Instruction::NoOp
             }
         })
