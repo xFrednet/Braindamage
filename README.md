@@ -23,13 +23,25 @@ Some planed features are:
 Source: https://en.wikipedia.org/wiki/Brainfuck
 
 ### New Braindamage operations
-| Operator | Function | C-Equivalent | Status |
+| Operator | Function | Pseudocode | Status |
 |---|---|---|---|
-| `:` | Opens a file and writes the value at the data pointer into it. The file write pointer moves forwarded by each operation. The stream is kept open until a ´0´ is written into it. | `TODO` | Planning |
-| `;` | Opens a file and reads one byte from the file into the value at the data pointer. The file read pointer moves forwarded by each operation. The stream will be closed when the program terminates. The reading pointer loops over the file, the end of the file is marked by a 0. <br> Example: The operation `;;;;` on the file `xF` would read: `xF0x` | `TODO` | Planning |
+| `:` | This writes the the current buffer value into a file buffer. The buffer will be filled until a `0` is submitted, this will save the current buffer to a file. | `if (cell == 0) {`<br>`__buffer.save();`<br>`__buffer.clear();`<br>`} else {`<br>`__buffer.push(cell);`<br>`}` | Working |
+| `;` | Loads a file and reads a cell from the file into the value at the data pointer. The read command will continue reading the file cell by cell until the end is reached. The end is indicated by a `0` and the next reading instruction will reload the file. <br><br> Example: The operation `;;;;` on the file `xF` would read: `xF0x` | `if (index > buffer.size()) {`<br>`__file.read(buffer);`<br>`__index = 0;`<br>`}`<br><br>`if (index < buffer.size()) {`<br>`__return buffer[index++];`<br>`} else {`<br>`__index++;`<br>`__return 0;`<br>`}`| Working |
 |`{` & `}`| This starts a new thread that will execute the operations in the brackets. The current thread will jump over the operations. The started thread terminates when the closing curly bracket is reached.<br> Example: `>+{[+]}>>[+]` this will result in two threads with one incrementing the second value and one incrementing the forth value of the data buffer. The program would never terminate. | `TODO` | Planning |
 |`@`| Connect to a network | `TODO` | Planning |
 |`°`| This reads any send data from the network buffer byte by byte. The reading is implemented as a queue that is drained. Messages are separated by 0. This operation will also return a `0` when the queue is empty. | `TODO` | Planning |
 |`^`| This writes one byte to the network buffer. The message buffer will be send when a ´0´ is written to the stream. | `TODO` | Planning |
 
-Source: My damaged brain... Feel free to make any suggestions:
+Source: My damaged brain... Feel free to make any suggestions :D
+
+## Examples
+### Hello World
+This writes `"Hello World!"` into a file. Then it reads the file and writes the content to the console. This is just a Braindamage `Hello World!` program.
+```
+++++++++++[>+>+++>+++++++>++++++++++<<<<-]>>>++:>+:+++++++::+++:<<++:>+++++++++++++++:>:+++:------:--------:<<+:<:[-]--<:;[.;]
+```
+
+### Write a file to console
+```
+;[.;]
+```
