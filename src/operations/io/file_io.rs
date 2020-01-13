@@ -101,7 +101,6 @@ impl<'a, T> BraindamageIo<T> for FileIo<'a, T>
 mod tests {
     use super::*;
     use std::fs::remove_file;
-    use std::fmt::Debug;
 
     fn delete_file(file: &str) {
         remove_file(file);
