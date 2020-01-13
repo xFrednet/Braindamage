@@ -9,6 +9,8 @@ const OP_IO_READ: char = ',';
 const OP_IO_WRITE: char = '.';
 const OP_LOOP_START: char = '[';
 const OP_LOOP_END: char = ']';
+const OP_FILE_IO_READ: char = ';';
+const OP_FILE_IO_WRITE: char = ':';
 const END_OF_STRING: char = '\0';
 
 pub fn parse_str<T>(script: &str) -> Vec<Instruction<T>>
@@ -53,6 +55,8 @@ fn parse_block<T>(instructions : &mut Chars, block_end: char) -> Vec<Instruction
             OP_IO_READ    => Instruction::IoRead,
             OP_IO_WRITE   => Instruction::IoWrite,
             OP_LOOP_START => Instruction::Loop(parse_block(instructions, OP_LOOP_END)),
+            OP_FILE_IO_READ => Instruction::FileIoRead,
+            OP_FILE_IO_WRITE => Instruction::FileIoWrite,
             _ => {
                 eprintln!("Error the char \'{}\' is not a valid instruction.", inst);
                 Instruction::NoOp

@@ -92,6 +92,19 @@ impl<'a, T> Interpreter<'a, T>
                         self.execute(instructions);
                     }
                 },
+                Instruction::FileIoRead => {
+                    self.buffer.set_value(
+                        self.index,
+                        self.file_io.read()
+                    )
+                },
+                Instruction::FileIoWrite => {
+                    let value = self.buffer.get_value(self.index);
+                    self.buffer.set_value(
+                        self.index,
+                        self.file_io.write(value)
+                    )
+                }
             }
         }
     }

@@ -20,7 +20,8 @@ mod parser;
 pub const ARRAY_SIZE: usize = 30_000;
 
 fn main() {
-    let code: Vec<Instruction<u8>> = parser::parse_str("++++++++++[>+>+++>+++++++>++++++++++<<<<-]>>>++.>+.+++++++..+++.<<++.>+++++++++++++++.>.+++.------.--------.<<+.<.[-]--");
+    let  code: Vec<Instruction<u8>> = parser::parse_str(
+        "++++++++++[>+>+++>+++++++>++++++++++<<<<-]>>>++:>+:+++++++::+++:<<++:>+++++++++++++++:>:+++:------:--------:<<+:<:[-]--<:;[.;]");
     //let code = parser::parse_str("--");
     //println!("OpCode: {:?}", code);
 

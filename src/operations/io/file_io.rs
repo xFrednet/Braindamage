@@ -142,7 +142,7 @@ mod tests {
     }
 
     fn test_read_write_type<T>(file: &str, data: &[T])
-        where T: Clone + PartialEq<T> + From<u8> + Default + Debug
+        where T: Cell
     {
         let mut io: FileIo<T> = FileIo::new(file);
 

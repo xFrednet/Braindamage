@@ -11,6 +11,9 @@ pub enum Instruction<T: Cell> {
     IoRead,
     IoWrite,
     Loop(Vec<Instruction<T>>),
+
+    FileIoRead,
+    FileIoWrite,
 }
 
 impl<T> Instruction<T>
