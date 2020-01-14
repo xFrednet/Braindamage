@@ -43,6 +43,7 @@ impl<T> BraindamageIo<T> for TestIo<T>
 impl<T> TestIo<T>
     where T: Cell
 {
+    #[allow(dead_code)]
     pub fn new(read_data: Vec<T>, loop_read_data: bool, expected_data: Vec<T>) -> Self {
         TestIo {
             read_data,
@@ -53,14 +54,16 @@ impl<T> TestIo<T>
         }
     }
 
+    #[allow(dead_code)]
     pub fn is_done(&self) -> bool {
         self.is_read_done() && self.is_write_done()
     }
-
+    #[allow(dead_code)]
     pub fn is_read_done(&self) -> bool {
         self.read_index == self.read_data.len() || self.loop_read_data
     }
 
+    #[allow(dead_code)]
     pub fn is_write_done(&self) -> bool{
         self.expected_data_index == self.expected_data.len()
     }

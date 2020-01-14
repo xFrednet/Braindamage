@@ -1,11 +1,9 @@
-use crate::{ARRAY_SIZE};
 use crate::cell::Cell;
 use std::fmt::{Formatter, Error, Debug};
 use std::cmp::min;
 
 pub struct VecBuffer<T: Cell> {
     buffer: Vec<T>,
-    pub index: usize
 }
 
 impl<T> VecBuffer<T>
@@ -19,16 +17,20 @@ impl<T> VecBuffer<T>
         self.buffer[index]
     }
 
+    pub fn size(&self) -> usize {
+        self.buffer.len()
+    }
+
     pub fn write_buffer(&self, f: &mut Formatter<'_>, start: usize, end: usize) -> Result<(), Error> {
         const ROW_SIZE: usize = 32;
         const SEPARATOR: usize = 8;
 
         write!(f, "Buffer {{\n").unwrap();
 
-        let start = min(start - (start % ROW_SIZE), ARRAY_SIZE);
+        let start = min(start - (start % ROW_SIZE), self.buffer.len() - 1);
         let end = min(
             if end % ROW_SIZE == 0 { end } else { end + ROW_SIZE - (end % ROW_SIZE) },
-            ARRAY_SIZE);
+            self.buffer.len() - 1);
 
         let mut row_start = start;
         while row_start < end {
@@ -36,6 +38,10 @@ impl<T> VecBuffer<T>
 
             let mut ascii = String::new();
             for i in 0..ROW_SIZE {
+                if (row_start + i) >= end {
+                    break;
+                }
+
                 let value = self.get_value(row_start + i);
                 write!(f, "{:02X} ", value).unwrap();
 
@@ -63,17 +69,16 @@ impl<T> VecBuffer<T>
     }
 }
 
-impl<T> Default for VecBuffer<T>
+impl<T> VecBuffer<T>
     where
         T: Cell
 {
-    fn default() -> Self {
+    pub(crate) fn new(array_size: usize) -> Self {
         let mut vec: Vec<T> = Vec::new();
-        vec.resize(crate::ARRAY_SIZE, T::default());
+        vec.resize(array_size, T::default());
 
         VecBuffer {
             buffer: vec,
-            index: 0
         }
     }
 }
