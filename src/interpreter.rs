@@ -19,7 +19,6 @@ pub struct Interpreter<'a, T: Cell> {
 
     console_io: Box<dyn BraindamageIo<T>>,
     file_io: Box<dyn BraindamageIo<T>>,
-
 }
 
 impl<'a, T> Interpreter<'a, T>
@@ -102,7 +101,6 @@ impl<'a, T> Interpreter<'a, T>
                 Instruction::LoopEnd {loop_size} => {
                     let break_value: T = T::default();
                     if self.buffer.get_value(self.index) != break_value {
-                        println!("inst: {}, sub {}", inst_ptr, *loop_size);
                         inst_ptr -= *loop_size;
                     }
                 }

@@ -31,7 +31,7 @@ Source: https://en.wikipedia.org/wiki/Brainfuck
 |`@`| Connect to a network | Planning |
 |`°`| This reads any send data from the network buffer byte by byte. The reading is implemented as a queue that is drained. Messages are separated by 0. This operation will also return a `0` when the queue is empty. | Planning |
 |`^`| This writes one byte to the network buffer. The message buffer will be send when a ´0´ is written to the stream. | Planning |
-
+|`_`| A simple noop operator. <br><br> Braindamage might remove noops to improve performance. This operator insures that this noop will not be removed. | Working |
 Source: My damaged brain... Feel free to make any suggestions :D
 
 ## Examples
