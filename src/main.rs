@@ -44,5 +44,4 @@ fn run_with_t<T>(settings: Settings)
     if settings.dump_mem {
         thing.dump_memory();
     }
-
 }
