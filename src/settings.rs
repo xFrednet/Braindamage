@@ -11,7 +11,7 @@ enum ArgState {
     BufferArg
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum CellType {
     U8,
     U16,

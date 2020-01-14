@@ -20,11 +20,23 @@ mod interpreter;
 use interpreter::Interpreter;
 
 use std::env;
+use crate::settings::CellType;
 
 fn main() {
     let args = env::args();
     let settings = Settings::parse_args(args);
-    let code: Vec<Instruction<u8>> = parser::parse_str(settings.get_src().as_str());
+
+    match settings.cell_type {
+        CellType::U8 => run_with_t::<u8>(settings),
+        CellType::U16 => run_with_t::<u16>(settings),
+        CellType::U32 => run_with_t::<u32>(settings),
+    };
+}
+
+fn run_with_t<T>(settings: Settings)
+    where T: Cell
+{
+    let code: Vec<Instruction<T>> = parser::parse_str(settings.get_src().as_str());
 
     let mut thing = Interpreter::new(&code, settings.buffer_size);
     thing.run();
@@ -32,4 +44,5 @@ fn main() {
     if settings.dump_mem {
         thing.dump_memory();
     }
+
 }
