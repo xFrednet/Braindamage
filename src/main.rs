@@ -21,14 +21,12 @@ use interpreter::Interpreter;
 
 use std::env;
 
-pub const ARRAY_SIZE: usize = 30_000;
-
 fn main() {
     let args = env::args();
     let settings = Settings::parse_args(args);
     let code: Vec<Instruction<u8>> = parser::parse_str(settings.get_src().as_str());
 
-    let mut thing = Interpreter::new(&code);
+    let mut thing = Interpreter::new(&code, settings.buffer_size);
     thing.run();
 
     if settings.dump_mem {

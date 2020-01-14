@@ -141,7 +141,7 @@ Debugging:
     -d --dump                      Dumps out the memory buffer after execution.
 
 Settings:
-    -c --cell (u8 | u16 | u32)     This sets the type for the buffer cell. (Default is u8)
-    -b --buffer <usize>            This defines the size of the buffer
+    -c --cell (u8 | u16 | u32)     This sets the type for the buffer cell. (Default: u8)
+    -b --buffer <usize>            This defines the size of the buffer. (Default: 30000)
 ");
 }

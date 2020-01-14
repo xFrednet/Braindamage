@@ -6,7 +6,7 @@ use crate::operations::io::BraindamageIo;
 //    : ;
 
 use crate::buffer::VecBuffer;
-use crate::{Instruction, Cell, ARRAY_SIZE};
+use crate::{Instruction, Cell};
 use crate::operations::io::console_io::ConsoleIo;
 use crate::operations::io::file_io::FileIo;
 
@@ -26,9 +26,10 @@ impl<'a, T> Interpreter<'a, T>
 {
     const DEFAULT_FILE: &'static str = "bd_data.txt";
 
-    pub fn new(instructions: &'a Vec<Instruction<T>>) -> Self {
+    pub fn new(instructions: &'a Vec<Instruction<T>>, buffer_size: usize) -> Self {
         Self::new_with_io(
             instructions,
+            buffer_size,
             Box::new(ConsoleIo::new()),
             Box::new(FileIo::new(&Self::DEFAULT_FILE))
         )
@@ -36,11 +37,12 @@ impl<'a, T> Interpreter<'a, T>
 
     pub fn new_with_io(
         instructions: &'a Vec<Instruction<T>>,
+        buffer_size: usize,
         console_io: Box<dyn BraindamageIo<T>>,
         file_io: Box<dyn BraindamageIo<T>>) -> Self
     {
         Interpreter {
-            buffer: VecBuffer::default(),
+            buffer: VecBuffer::new(buffer_size),
             index: 0,
 
             instructions,
@@ -58,8 +60,8 @@ impl<'a, T> Interpreter<'a, T>
         for inst in instructions {
             match inst {
                 Instruction::NoOp => {},
-                Instruction::IncreaseIndex(x) => { self.index = (self.index + *x) % ARRAY_SIZE },
-                Instruction::DecreaseIndex(x) => { self.index = (self.index - *x) % ARRAY_SIZE },
+                Instruction::IncreaseIndex(x) => { self.index = (self.index + *x) % self.buffer.size() },
+                Instruction::DecreaseIndex(x) => { self.index = (self.index - *x) % self.buffer.size() },
                 Instruction::IncreaseValue(x) => {
                     self.buffer.set_value(
                         self.index,
