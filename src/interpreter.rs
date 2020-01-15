@@ -92,16 +92,16 @@ impl<'a, T> Interpreter<'a, T>
                         self.console_io.write(value)
                     )
                 },
-                Instruction::LoopStart {loop_size, ..} => {
+                Instruction::LoopStart(x) => {
                     let break_value: T = T::default();
                     if self.buffer.get_value(self.index) == break_value {
-                        inst_ptr += *loop_size;
+                        inst_ptr += *x;
                     }
                 }
-                Instruction::LoopEnd {loop_size} => {
+                Instruction::LoopEnd(x) => {
                     let break_value: T = T::default();
                     if self.buffer.get_value(self.index) != break_value {
-                        inst_ptr -= *loop_size;
+                        inst_ptr -= *x;
                     }
                 }
                 Instruction::FileIoRead => {

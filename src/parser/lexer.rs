@@ -1,4 +1,5 @@
 use crate::{Cell, Instruction};
+use std::str::Chars;
 
 const OP_INC_INDEX: char = '>';
 const OP_DEC_INDEX: char = '<';
@@ -12,9 +13,13 @@ const OP_FILE_IO_READ: char = ';';
 const OP_FILE_IO_WRITE: char = ':';
 const OP_NOOP: char = '_';
 
+pub(crate) enum LexerItem<T: Cell> {
+    Instruction(Instruction<T>),
+    LoopBlock(Vec<LexerItem<T>>)
+}
+
 pub(crate) struct Lexer<T: Cell> {
-    instructions: Vec<Instruction<T>>,
-    loop_stack: Vec<usize>,
+    instructions: Vec<LexerItem<T>>,
     unknown_to_noop: bool
 }
 
@@ -24,77 +29,82 @@ impl<T> Lexer<T>
     pub fn new(unknown_to_noop: bool) -> Self {
         Lexer {
             instructions: Vec::new(),
-            loop_stack: Vec::new(),
             unknown_to_noop
         }
     }
 
     pub fn lex_string(&mut self, code: &str) {
-        let mut index = 0;
-        for inst in code.chars() {
-            match self.lex_char(inst, index) {
+        let code = code.to_string();
+        self.instructions = self.lex_block(&mut code.chars(), char::default())
+    }
+
+    pub fn lex_block(&mut self, code: &mut Chars, end: char) -> Vec<LexerItem<T>> {
+        let mut block = Vec::new();
+
+        loop {
+            let inst = code.next();
+            if inst.is_none() {
+                return block;
+            }
+
+            let inst = inst.unwrap();
+            if inst == end {
+                return block;
+            }
+
+            let lexed_inst = match inst {
+                OP_INC_INDEX     => {Some(LexerItem::Instruction(Instruction::IncreaseIndex(1)))},
+                OP_DEC_INDEX     => {Some(LexerItem::Instruction(Instruction::DecreaseIndex(1)))},
+                OP_INC_VALUE     => {Some(LexerItem::Instruction(Instruction::IncreaseValue(T::from(1u8))))},
+                OP_DEC_VALUE     => {Some(LexerItem::Instruction(Instruction::DecreaseValue(T::from(1u8))))},
+                OP_IO_READ       => {Some(LexerItem::Instruction(Instruction::IoRead))},
+                OP_IO_WRITE      => {Some(LexerItem::Instruction(Instruction::IoWrite))},
+                OP_LOOP_START    => {
+                    Some(LexerItem::LoopBlock(self.lex_block(code, OP_LOOP_END)))
+                },
+                OP_FILE_IO_READ  => {Some(LexerItem::Instruction(Instruction::FileIoRead))},
+                OP_FILE_IO_WRITE => {Some(LexerItem::Instruction(Instruction::FileIoWrite))},
+                OP_NOOP          => {Some(LexerItem::Instruction(Instruction::NoOp))}
+                _ => {
+                    if self.unknown_to_noop {
+                        Some(LexerItem::Instruction(Instruction::NoOp))
+                    } else {
+                        None
+                    }
+                }
+            };
+
+            match lexed_inst {
                 None => {},
                 Some(x) => {
-                    self.instructions.push(x);
-                    index += 1;
+                    block.push(x);
                 },
             }
         }
     }
 
-    pub fn lex_char(&mut self, inst: char, index: usize) -> Option<Instruction<T>> {
-        match inst {
-            OP_INC_INDEX     => {Some(Instruction::IncreaseIndex(1))},
-            OP_DEC_INDEX     => {Some(Instruction::DecreaseIndex(1))},
-            OP_INC_VALUE     => {Some(Instruction::IncreaseValue(T::from(1u8)))},
-            OP_DEC_VALUE     => {Some(Instruction::DecreaseValue(T::from(1u8)))},
-            OP_IO_READ       => {Some(Instruction::IoRead)},
-            OP_IO_WRITE      => {Some(Instruction::IoWrite)},
+    fn flatten(items: Vec<LexerItem<T>>) -> Vec<Instruction<T>> {
+        let mut instructions = Vec::new();
 
-            OP_LOOP_START    => {
-                self.loop_stack.push(index);
-                Some(Instruction::LoopStart{loop_size: 0, size_set: false})
-            },
-            OP_LOOP_END      => {
-                let start = match self.loop_stack.pop() {
-                    Some(start) => {
-                        match self.instructions.get_mut(start).unwrap() {
-                            Instruction::LoopStart { ref mut loop_size, ref mut size_set} => {
-                                *loop_size = index - start;
-                                *size_set = true;
-                            },
-                            _ => {},
-                        };
+        for item in items {
+            match item {
+                LexerItem::Instruction(x) => {instructions.push(x)},
+                LexerItem::LoopBlock(block) => {
+                    let mut block = Self::flatten(block);
+                    let block_size = block.len() + 1;
 
-                        start
-                    }
-                    None => {
-                        println!("The Closing bracket at index {} has no partner.", index);
-                        0
-                    },
-                };
-
-                Some(Instruction::LoopEnd {loop_size: index - start})
-            },
-            OP_FILE_IO_READ  => {Some(Instruction::FileIoRead)},
-            OP_FILE_IO_WRITE => {Some(Instruction::FileIoWrite)},
-            OP_NOOP          => {Some(Instruction::NoOp)}
-            _ => {
-                if self.unknown_to_noop {
-                    Some(Instruction::NoOp)
-                } else {
-                    None
-                }
+                    instructions.push(Instruction::LoopStart(block_size));
+                    instructions.append(&mut block);
+                    instructions.push(Instruction::LoopEnd(block_size));
+                },
             }
         }
+
+        instructions
     }
 
     pub fn finish(self) -> Vec<Instruction<T>> {
-        for index in self.loop_stack {
-            println!("The block starting at {} was not closed.", index);
-        }
-
-        self.instructions
+        Self::flatten(self.instructions)
     }
 }
 

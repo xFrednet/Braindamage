@@ -10,8 +10,8 @@ pub enum Instruction<T: Cell> {
     DecreaseValue(T),
     IoRead,
     IoWrite,
-    LoopStart { loop_size: usize, size_set: bool},
-    LoopEnd { loop_size: usize },
+    LoopStart(usize),
+    LoopEnd(usize),
 
     FileIoRead,
     FileIoWrite,
