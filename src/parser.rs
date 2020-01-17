@@ -1,46 +1,60 @@
 use crate::{Instruction, Cell};
+use std::fmt::Debug;
+
+pub mod token;
+pub use token::Token;
+
+mod mode;
+pub use mode::ParserMode;
 
 mod lexer;
-use lexer::Lexer;
+pub(crate) use lexer::Lexer;
 
-pub fn parse_str<T>(script: &str) -> Vec<Instruction<T>>
-    where
-        T: Cell
-{
-    let mut lexer = Lexer::default();
-    lexer.lex_string(script);
-    lexer.finish()
-
-    //aggregate_same(ops)
+pub(crate) trait Processor<T> {
+    fn process(code: T) -> T;
 }
 
-#[allow(dead_code)]
-fn aggregate_same<T>(mut ops: Vec<Instruction<T>>) -> Vec<Instruction<T>>
-    where
-        T: Cell
-{
-    // This causes currently an error because it changed the indices of loop start and ends by removing instructions
-    // but this is not implemented here
-    let mut result = Vec::new();
-    let mut iter = ops.drain(0..);
-    let mut last_item = iter.next().unwrap_or(Instruction::NoOp);
+pub(crate) trait Postprocessor<T: Cell>: Debug{
+    fn process(&self, code: Vec<Token<T>>) -> Vec<Token<T>>;
+}
+mod postprocessor;
 
-    loop {
-        let item = iter.next();
-        if item.is_none() {
-            break;
-        }
-        let item = item.unwrap();
+#[derive(Debug)]
+pub(crate) struct Parser<T: Cell> {
+    mode: ParserMode,
+    lexer: Lexer<T>,
+    postprocessor: Vec<Box<dyn Postprocessor<T>>>
+}
 
-        // Test for join
-        if last_item.can_join(&item) {
-            last_item = last_item.join(item);
-        } else {
-            result.push(last_item);
-            last_item = item;
+impl<T: Cell> Parser<T> {
+
+    pub fn new(mode: ParserMode) -> Self {
+        let lexer = Lexer::new(mode.keep_comments());
+        let mut pipe = Parser {
+            mode,
+            lexer,
+            postprocessor: Vec::new(),
+        };
+
+        pipe.setup();
+
+        pipe
+    }
+
+    fn setup(&mut self) {
+        if self.mode.aggregate_instructions() {
+            self.postprocessor.push(Box::new(postprocessor::AggregateSameProcessor::create()))
         }
     }
 
-    result.push(last_item);
-    result
+    pub fn parse_script(&mut self, script: &str) -> Vec<Instruction<T>> {
+        let mut tokens = self.lexer.lex_string(script);
+
+        for i in 0..self.postprocessor.len() {
+            tokens = self.postprocessor.get(i).unwrap().process(tokens);
+        }
+
+        self.lexer.flatten(tokens)
+    }
+
 }

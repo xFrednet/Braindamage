@@ -1,5 +1,7 @@
 use crate::{Cell, Instruction};
 use std::str::Chars;
+use crate::parser::Token;
+use std::marker::PhantomData;
 
 const OP_INC_INDEX: char = '>';
 const OP_DEC_INDEX: char = '<';
@@ -13,14 +15,10 @@ const OP_FILE_IO_READ: char = ';';
 const OP_FILE_IO_WRITE: char = ':';
 const OP_NOOP: char = '_';
 
-pub(crate) enum LexerItem<T: Cell> {
-    Instruction(Instruction<T>),
-    LoopBlock(Vec<LexerItem<T>>)
-}
-
+#[derive(Debug)]
 pub(crate) struct Lexer<T: Cell> {
-    instructions: Vec<LexerItem<T>>,
-    unknown_to_noop: bool
+    unknown_to_noop: bool,
+    phantom: PhantomData<T>,
 }
 
 impl<T> Lexer<T>
@@ -28,17 +26,17 @@ impl<T> Lexer<T>
 {
     pub fn new(unknown_to_noop: bool) -> Self {
         Lexer {
-            instructions: Vec::new(),
-            unknown_to_noop
+            unknown_to_noop,
+            phantom: PhantomData
         }
     }
 
-    pub fn lex_string(&mut self, code: &str) {
+    pub fn lex_string(&mut self, code: &str) -> Vec<Token<T>> {
         let code = code.to_string();
-        self.instructions = self.lex_block(&mut code.chars(), char::default())
+        self.lex_block(&mut code.chars(), char::default())
     }
 
-    pub fn lex_block(&mut self, code: &mut Chars, end: char) -> Vec<LexerItem<T>> {
+    fn lex_block(&mut self, code: &mut Chars, end: char) -> Vec<Token<T>> {
         let mut block = Vec::new();
 
         loop {
@@ -53,21 +51,21 @@ impl<T> Lexer<T>
             }
 
             let lexed_inst = match inst {
-                OP_INC_INDEX     => {Some(LexerItem::Instruction(Instruction::IncreaseIndex(1)))},
-                OP_DEC_INDEX     => {Some(LexerItem::Instruction(Instruction::DecreaseIndex(1)))},
-                OP_INC_VALUE     => {Some(LexerItem::Instruction(Instruction::IncreaseValue(T::from(1u8))))},
-                OP_DEC_VALUE     => {Some(LexerItem::Instruction(Instruction::DecreaseValue(T::from(1u8))))},
-                OP_IO_READ       => {Some(LexerItem::Instruction(Instruction::IoRead))},
-                OP_IO_WRITE      => {Some(LexerItem::Instruction(Instruction::IoWrite))},
+                OP_INC_INDEX     => {Some(Token::Instruction(Instruction::IncreaseIndex(1)))},
+                OP_DEC_INDEX     => {Some(Token::Instruction(Instruction::DecreaseIndex(1)))},
+                OP_INC_VALUE     => {Some(Token::Instruction(Instruction::IncreaseValue(T::from(1u8))))},
+                OP_DEC_VALUE     => {Some(Token::Instruction(Instruction::DecreaseValue(T::from(1u8))))},
+                OP_IO_READ       => {Some(Token::Instruction(Instruction::IoRead))},
+                OP_IO_WRITE      => {Some(Token::Instruction(Instruction::IoWrite))},
                 OP_LOOP_START    => {
-                    Some(LexerItem::LoopBlock(self.lex_block(code, OP_LOOP_END)))
+                    Some(Token::LoopBlock(self.lex_block(code, OP_LOOP_END)))
                 },
-                OP_FILE_IO_READ  => {Some(LexerItem::Instruction(Instruction::FileIoRead))},
-                OP_FILE_IO_WRITE => {Some(LexerItem::Instruction(Instruction::FileIoWrite))},
-                OP_NOOP          => {Some(LexerItem::Instruction(Instruction::NoOp))}
+                OP_FILE_IO_READ  => {Some(Token::Instruction(Instruction::FileIoRead))},
+                OP_FILE_IO_WRITE => {Some(Token::Instruction(Instruction::FileIoWrite))},
+                OP_NOOP          => {Some(Token::Instruction(Instruction::NoOp))}
                 _ => {
                     if self.unknown_to_noop {
-                        Some(LexerItem::Instruction(Instruction::NoOp))
+                        Some(Token::Instruction(Instruction::NoOp))
                     } else {
                         None
                     }
@@ -83,14 +81,14 @@ impl<T> Lexer<T>
         }
     }
 
-    fn flatten(items: Vec<LexerItem<T>>) -> Vec<Instruction<T>> {
+    pub fn flatten(&self, items: Vec<Token<T>>) -> Vec<Instruction<T>> {
         let mut instructions = Vec::new();
 
         for item in items {
             match item {
-                LexerItem::Instruction(x) => {instructions.push(x)},
-                LexerItem::LoopBlock(block) => {
-                    let mut block = Self::flatten(block);
+                Token::Instruction(x) => {instructions.push(x)},
+                Token::LoopBlock(block) => {
+                    let mut block = self.flatten(block);
                     let block_size = block.len() + 1;
 
                     instructions.push(Instruction::LoopStart(block_size));
@@ -101,10 +99,6 @@ impl<T> Lexer<T>
         }
 
         instructions
-    }
-
-    pub fn finish(self) -> Vec<Instruction<T>> {
-        Self::flatten(self.instructions)
     }
 }
 

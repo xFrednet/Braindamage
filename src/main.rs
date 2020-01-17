@@ -21,6 +21,7 @@ use interpreter::Interpreter;
 
 use std::env;
 use crate::settings::CellType;
+use crate::parser::Parser;
 
 fn main() {
     let args = env::args();
@@ -36,7 +37,7 @@ fn main() {
 fn run_with_t<T>(settings: Settings)
     where T: Cell
 {
-    let code: Vec<Instruction<T>> = parser::parse_str(settings.get_src().as_str());
+    let code: Vec<Instruction<T>> = Parser::new(settings.parser_mode).parse_script(settings.get_src().as_str());
 
     let mut thing = Interpreter::new(&code, settings.buffer_size);
     thing.run();
