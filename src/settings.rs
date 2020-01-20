@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Read;
 use std::process;
+use crate::parser::{ParserMode};
 
 enum ArgState {
     SkipExeFile,
@@ -21,6 +22,7 @@ pub enum CellType {
 #[derive(Debug)]
 pub struct Settings {
     pub src: String,
+    pub parser_mode: ParserMode,
     pub dump_mem: bool,
     pub cell_type: CellType,
     pub buffer_size: usize
@@ -45,7 +47,8 @@ impl Settings {
                             process::exit(0);
                         }
 
-                        "-d" | "--dump" => settings.dump_mem = true,
+                        "-d" | "--debug" => settings.parser_mode = ParserMode::Debug,
+                        "--dump" => settings.dump_mem = true,
 
                         "-c" | "--cell" => mode = ArgState::CellArg,
                         "-b" | "--buffer" => mode = ArgState::BufferArg,
@@ -98,6 +101,7 @@ impl Settings {
     fn init_default() -> Settings {
         Settings {
             src: String::default(),
+            parser_mode: ParserMode::Release,
             dump_mem: false,
             cell_type: CellType::U8,
             buffer_size: 30_000
@@ -129,8 +133,8 @@ fn load_source_file(file_name: String) -> Option<String> {
 
 fn print_help() {
     println!("
-braindamage [--help | -h] [[--file | -f <src-file>] | [--src | -s <src-code>]]
-            [-d | --dump]
+braindamage [[--help | -h] | [--file | -f <src-file>] | [--src | -s <src-code>]]
+            [-d | --debug] [--dump]
 
 Main operation (Required):
     -s --src  <src-code>           Sets the provided string as the src.
@@ -138,7 +142,8 @@ Main operation (Required):
     -h --help                      Prints this help message.
 
 Debugging:
-    -d --dump                      Dumps out the memory buffer after execution.
+    -d --debug                  This enabled debugging instructions and disables parser optimisation.
+       --dump                   Dumps out the memory buffer after execution.
 
 Settings:
     -c --cell (u8 | u16 | u32)     This sets the type for the buffer cell. (Default: u8)

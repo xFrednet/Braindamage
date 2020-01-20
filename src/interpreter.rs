@@ -9,6 +9,7 @@ use crate::buffer::VecBuffer;
 use crate::{Instruction, Cell};
 use crate::operations::io::console_io::ConsoleIo;
 use crate::operations::io::file_io::FileIo;
+use std::num::Wrapping;
 
 pub struct Interpreter<'a, T: Cell> {
     buffer: VecBuffer<T>,
@@ -18,7 +19,6 @@ pub struct Interpreter<'a, T: Cell> {
 
     console_io: Box<dyn BraindamageIo<T>>,
     file_io: Box<dyn BraindamageIo<T>>,
-
 }
 
 impl<'a, T> Interpreter<'a, T>
@@ -57,11 +57,18 @@ impl<'a, T> Interpreter<'a, T>
     }
 
     fn execute(&mut self, instructions: &Vec<Instruction<T>>) {
-        for inst in instructions {
+        let mut inst_ptr = 0;
+        while inst_ptr < instructions.len() {
+            let inst = instructions.get(inst_ptr).unwrap();
+
             match inst {
                 Instruction::NoOp => {},
-                Instruction::IncreaseIndex(x) => { self.index = (self.index + *x) % self.buffer.size() },
-                Instruction::DecreaseIndex(x) => { self.index = (self.index - *x) % self.buffer.size() },
+                Instruction::IncreaseIndex(x) => {
+                    self.index = (Wrapping(self.index) + Wrapping(*x)).0 % self.buffer.size()
+                },
+                Instruction::DecreaseIndex(x) => {
+                    self.index = (Wrapping(self.index) - Wrapping(*x)).0 % self.buffer.size()
+                },
                 Instruction::IncreaseValue(x) => {
                     self.buffer.set_value(
                         self.index,
@@ -85,12 +92,18 @@ impl<'a, T> Interpreter<'a, T>
                         self.console_io.write(value)
                     )
                 },
-                Instruction::Loop(instructions) => {
+                Instruction::LoopStart(x) => {
                     let break_value: T = T::default();
-                    while self.buffer.get_value(self.index) != break_value {
-                        self.execute(instructions);
+                    if self.buffer.get_value(self.index) == break_value {
+                        inst_ptr += *x;
                     }
-                },
+                }
+                Instruction::LoopEnd(x) => {
+                    let break_value: T = T::default();
+                    if self.buffer.get_value(self.index) != break_value {
+                        inst_ptr -= *x;
+                    }
+                }
                 Instruction::FileIoRead => {
                     self.buffer.set_value(
                         self.index,
@@ -105,6 +118,8 @@ impl<'a, T> Interpreter<'a, T>
                     )
                 }
             }
+
+            inst_ptr += 1;
         }
     }
 

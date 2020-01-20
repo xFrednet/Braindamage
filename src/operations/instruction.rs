@@ -10,7 +10,8 @@ pub enum Instruction<T: Cell> {
     DecreaseValue(T),
     IoRead,
     IoWrite,
-    Loop(Vec<Instruction<T>>),
+    LoopStart(usize),
+    LoopEnd(usize),
 
     FileIoRead,
     FileIoWrite,
@@ -40,13 +41,6 @@ impl<T> Instruction<T>
             (Instruction::IncreaseValue(x)   , Instruction::IncreaseValue(y  )) => Instruction::IncreaseValue(x + y),
             (Instruction::DecreaseValue(x)   , Instruction::DecreaseValue(y  )) => Instruction::DecreaseValue(x + y),
             (this, _) => this
-        }
-    }
-
-    pub fn is_loop(&self) -> bool {
-        match self {
-            Instruction::Loop(_) => true,
-            _ => false
         }
     }
 }
