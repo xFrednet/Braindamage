@@ -1,5 +1,7 @@
 use clap::Parser;
 
+mod pass;
+
 #[derive(Parser, Debug)]
 #[command(name = "braindamage")]
 struct Cli {
@@ -13,4 +15,7 @@ fn main() {
     let cli = Cli::parse();
     println!("Input: {}", cli.file);
     println!("Output: {}", cli.output);
+
+    let out = pass::run_passes("--REPEAT(x,3)--");
+    println!("{out}");
 }
