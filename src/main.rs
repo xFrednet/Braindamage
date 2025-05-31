@@ -1,6 +1,8 @@
 use clap::{Args, Parser, Subcommand};
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+
+mod interpreter;
 
 #[derive(Parser, Debug)]
 #[command(name = "braindamage")]
@@ -19,7 +21,7 @@ struct RunArgs {
     // FIXME: Would be cool, if this wouldn't require the `-f` flag
     /// The file to run
     #[arg(short, long, required = true)]
-    file: Option<PathBuf>,
+    file: PathBuf,
 
     // FIXME: This should take a string, to allow units like
     // 1kb or 10mb
@@ -39,5 +41,20 @@ struct RunArgs {
 
 fn main() {
     let cli = Cli::parse();
-    println!("Output: {:#?}", cli);
+
+    match cli.command {
+        Commands::Run(args) => {
+            let program = load_file(&args.file).unwrap();
+            let mut inter =
+                interpreter::Interpreter::new(&program, args.memory, args.debug, args.start);
+            inter.run().unwrap();
+        }
+    }
+}
+
+fn load_file(file: &Path) -> Result<String, String> {
+    let file_name = file.to_string_lossy();
+    let data = std::fs::read(file).map_err(|err| format!(r#"Unable to open "{file_name}": {err:#?}"#))?;
+
+    String::from_utf8(data).map_err(|err| format!(r#"File "{file_name}" is not valid UTF8: {err:#?}"#))
 }
