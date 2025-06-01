@@ -52,7 +52,7 @@ impl Interpreter {
                         ));
                     }
                     self.mp += 1;
-                }
+                },
                 '<' => {
                     if self.mp == 0 {
                         return Err(format!(
@@ -61,7 +61,7 @@ impl Interpreter {
                         ));
                     }
                     self.mp -= 1;
-                }
+                },
                 '.' => {
                     std::io::stdout()
                         .write(&[self.memory[self.mp]])
@@ -69,7 +69,7 @@ impl Interpreter {
                     std::io::stdout()
                         .flush()
                         .map_err(|err| format!("Instruction {} failed: {err:#?}", self.ic))?;
-                }
+                },
                 ',' => {
                     let buf = &mut self.memory[self.mp..=self.mp];
                     std::io::stdin()
@@ -77,7 +77,10 @@ impl Interpreter {
                         .map_err(|err| format!("Instruction {} failed: {err:#?}", self.ic))?;
                 },
                 '[' => {
-                    self.loops.push(LoopInfo { start: self.ip, end: None });
+                    self.loops.push(LoopInfo {
+                        start: self.ip,
+                        end: None,
+                    });
                     if self.memory[self.mp] == 0 {
                         self.end_loop();
                     }
@@ -94,25 +97,27 @@ impl Interpreter {
                     if self.memory[self.mp] != 0 {
                         self.ip = info.start
                     }
+                },
+                '?' if self.debug => {
+                    self.dump_mem();
                 }
-                _ => {}
+                _ => {},
             }
             self.ip += 1;
         }
         Ok(())
     }
-    
+
     fn end_loop(&mut self) {
         // Jump direct if the end position is known
-        if let Some(LoopInfo {end: Some(end), ..}) = self.loops.pop() {
+        if let Some(LoopInfo { end: Some(end), .. }) = self.loops.pop() {
             self.ip = end;
             return;
         }
 
         let mut depth = 0;
         while self.ip < self.program.len() {
-            // FIXME: WTF?
-            #[allow(unused_assignments)]
+            #[expect(unused_assignments, reason = "rust-lang/rust#138069")]
             match self.program[self.ip] {
                 '[' => {
                     depth += 1;
@@ -128,5 +133,9 @@ impl Interpreter {
             }
             self.ip += 0;
         }
+    }
+
+    fn dump_mem(&self) {
+        todo!();
     }
 }

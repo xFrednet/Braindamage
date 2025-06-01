@@ -45,10 +45,9 @@ fn main() {
     match cli.command {
         Commands::Run(args) => {
             let program = load_file(&args.file).unwrap();
-            let mut inter =
-                interpreter::Interpreter::new(&program, args.memory, args.debug, args.start);
+            let mut inter = interpreter::Interpreter::new(&program, args.memory, args.debug, args.start);
             inter.run().unwrap();
-        }
+        },
     }
 }
 
