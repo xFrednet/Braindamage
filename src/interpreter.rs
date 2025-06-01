@@ -1,11 +1,14 @@
 use std::io::Read;
 use std::io::Write;
 
+use crate::mem::MemInfo;
+
 pub struct Interpreter {
     program: Vec<char>,
     /// The stack of current loops
     loops: Vec<LoopInfo>,
     memory: Vec<u8>,
+    mem_layout: MemInfo,
     debug: bool,
     /// Instruction Pointer
     ip: usize,
@@ -13,7 +16,6 @@ pub struct Interpreter {
     mp: usize,
     /// Instruction Counter (Debug Info)
     ic: usize,
-    home: usize,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -24,16 +26,16 @@ struct LoopInfo {
     end: Option<usize>,
 }
 impl Interpreter {
-    pub fn new(program: &str, mem_size: usize, debug: bool, home: usize) -> Self {
+    pub fn new(program: &str, mem_layout: MemInfo, debug: bool) -> Self {
         Self {
             program: program.chars().collect(),
             loops: vec![],
-            memory: vec![0; mem_size],
+            memory: vec![0; mem_layout.size()],
+            mem_layout,
             debug,
             ip: 0,
-            mp: home,
+            mp: mem_layout.start_pos(),
             ic: 0,
-            home,
         }
     }
 
@@ -100,7 +102,7 @@ impl Interpreter {
                 },
                 '?' if self.debug => {
                     self.dump_mem();
-                }
+                },
                 _ => {},
             }
             self.ip += 1;
@@ -136,6 +138,6 @@ impl Interpreter {
     }
 
     fn dump_mem(&self) {
-        todo!();
+        eprintln!("\n### Memory after {} instructions:\n```\n{}```", self.ic, self.mem_layout.print_mem(&self.memory));
     }
 }

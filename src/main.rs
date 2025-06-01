@@ -3,6 +3,7 @@ use clap::{Args, Parser, Subcommand};
 use std::path::{Path, PathBuf};
 
 mod interpreter;
+mod mem;
 
 #[derive(Parser, Debug)]
 #[command(name = "braindamage")]
@@ -26,8 +27,8 @@ struct RunArgs {
     // FIXME: This should take a string, to allow units like
     // 1kb or 10mb
     /// The amount of memory which should be provided by the interpreter
-    #[arg(short, long, default_value = "1000")]
-    memory: usize,
+    #[arg(short, long, value_parser = clap::value_parser!(mem::MemInfo), default_value = "64")]
+    memory: mem::MemInfo,
 
     /// The start position of the memory head.
     #[arg(long, default_value = "100")]
@@ -41,11 +42,12 @@ struct RunArgs {
 
 fn main() {
     let cli = Cli::parse();
+    println!("{cli:#?}");
 
     match cli.command {
         Commands::Run(args) => {
             let program = load_file(&args.file).unwrap();
-            let mut inter = interpreter::Interpreter::new(&program, args.memory, args.debug, args.start);
+            let mut inter = interpreter::Interpreter::new(&program, args.memory, args.debug);
             inter.run().unwrap();
         },
     }
