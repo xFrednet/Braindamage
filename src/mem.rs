@@ -26,7 +26,7 @@ impl MemInfo {
         }
     }
 
-    pub fn print_mem(&self, mem: &[u8]) -> String {
+    pub fn print_mem(&self, mem: &[u8], idx: usize) -> String {
         const ROW_SIZE: usize = 16;
         const CHUNK_SIZE: usize = 8;
         const MEM_SIZE: usize = (ROW_SIZE / CHUNK_SIZE) * (CHUNK_SIZE * 3 + 4);
@@ -34,6 +34,7 @@ impl MemInfo {
         let mut buffer = String::new();
         match self.layout {
             Layout::Uniform(_) => {
+                let mut cell_idx = 0;
                 for (row_num, row) in mem.chunks(ROW_SIZE).enumerate() {
                     let start_addr = row_num * ROW_SIZE;
 
@@ -44,7 +45,8 @@ impl MemInfo {
                         write!(text, " ").unwrap();
 
                         for value in chunk {
-                            write!(bytes, " {value:02X}").unwrap();
+                            let prefix = if cell_idx == idx { '>' } else { ' ' };
+                            write!(bytes, "{prefix}{value:02X}").unwrap();
 
                             let char_value = char::from(*value);
                             if char_value.is_alphanumeric() {
@@ -52,10 +54,12 @@ impl MemInfo {
                             } else {
                                 text.push('.');
                             }
+
+                            cell_idx += 1;
                         }
                     }
 
-                    writeln!(buffer, "{start_addr:08X} |{bytes} |{text}").unwrap();
+                    writeln!(buffer, "{start_addr:08X} |{bytes}  |{text}").unwrap();
                 }
             },
         }

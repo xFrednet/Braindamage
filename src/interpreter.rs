@@ -49,8 +49,9 @@ impl Interpreter {
                 '>' => {
                     if self.mp == (self.memory.len() - 1) {
                         return Err(format!(
-                            "Instruction {} attempted to move the memory pointer out of bounds",
-                            self.ic
+                            "Instruction {} at {} attempted to move the memory pointer out of bounds",
+                            self.ic,
+                            self.ip,
                         ));
                     }
                     self.mp += 1;
@@ -58,8 +59,9 @@ impl Interpreter {
                 '<' => {
                     if self.mp == 0 {
                         return Err(format!(
-                            "Instruction {} attempted to move the memory pointer out of bounds",
-                            self.ic
+                            "Instruction {} at {} attempted to move the memory pointer out of bounds (< 0)",
+                            self.ic,
+                            self.ip,
                         ));
                     }
                     self.mp -= 1;
@@ -98,6 +100,8 @@ impl Interpreter {
 
                     if self.memory[self.mp] != 0 {
                         self.ip = info.start
+                    } else {
+                        self.loops.pop();
                     }
                 },
                 '?' if self.debug => {
@@ -141,7 +145,7 @@ impl Interpreter {
         eprintln!(
             "\n### Memory after {} instructions:\n```\n{}```",
             self.ic,
-            self.mem_layout.print_mem(&self.memory)
+            self.mem_layout.print_mem(&self.memory, self.mp),
         );
     }
 }
