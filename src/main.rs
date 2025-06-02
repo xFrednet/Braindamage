@@ -27,7 +27,7 @@ struct RunArgs {
     // FIXME: This should take a string, to allow units like
     // 1kb or 10mb
     /// The amount of memory which should be provided by the interpreter
-    #[arg(short, long, value_parser = clap::value_parser!(mem::MemInfo), default_value = "64")]
+    #[arg(short, long, value_parser = clap::value_parser!(mem::MemInfo), default_value = "32")]
     memory: mem::MemInfo,
 
     /// The start position of the memory head.
@@ -42,7 +42,6 @@ struct RunArgs {
 
 fn main() {
     let cli = Cli::parse();
-    println!("{cli:#?}");
 
     match cli.command {
         Commands::Run(args) => {

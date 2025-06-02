@@ -27,7 +27,7 @@ impl MemInfo {
     }
 
     pub fn print_mem(&self, mem: &[u8]) -> String {
-        const ROW_SIZE: usize = 32;
+        const ROW_SIZE: usize = 16;
         const CHUNK_SIZE: usize = 8;
         const MEM_SIZE: usize = (ROW_SIZE / CHUNK_SIZE) * (CHUNK_SIZE * 3 + 4);
 
@@ -40,6 +40,9 @@ impl MemInfo {
                     let mut bytes = String::with_capacity(MEM_SIZE);
                     let mut text = String::with_capacity(MEM_SIZE);
                     for chunk in row.chunks(CHUNK_SIZE) {
+                        write!(bytes, " ").unwrap();
+                        write!(text, " ").unwrap();
+
                         for value in chunk {
                             write!(bytes, " {value:02X}").unwrap();
 
@@ -50,12 +53,9 @@ impl MemInfo {
                                 text.push('.');
                             }
                         }
-
-                        write!(bytes, "    ").unwrap();
-                        write!(text, " ").unwrap();
                     }
 
-                    writeln!(buffer, "{start_addr:08X} | {bytes} | {text}").unwrap();
+                    writeln!(buffer, "{start_addr:08X} |{bytes} |{text}").unwrap();
                 }
             },
         }

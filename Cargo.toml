@@ -1,5 +1,5 @@
 [package]
-name = "Braindamage"
+name = "braindamage"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,7 @@ edition = "2021"
 clap = { version = "4.5.38", features = ["derive"] }
 itertools = "0.14.0"
 regex = "1.11.1"
+
+[dev-dependencies]
+assert_cmd = "2.0.17"
+insta = { version = "1.43.1", features = ["glob"] }

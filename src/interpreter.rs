@@ -138,6 +138,10 @@ impl Interpreter {
     }
 
     fn dump_mem(&self) {
-        eprintln!("\n### Memory after {} instructions:\n```\n{}```", self.ic, self.mem_layout.print_mem(&self.memory));
+        eprintln!(
+            "\n### Memory after {} instructions:\n```\n{}```",
+            self.ic,
+            self.mem_layout.print_mem(&self.memory)
+        );
     }
 }
