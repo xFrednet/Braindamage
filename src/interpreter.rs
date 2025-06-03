@@ -50,8 +50,7 @@ impl Interpreter {
                     if self.mp == (self.memory.len() - 1) {
                         return Err(format!(
                             "Instruction {} at {} attempted to move the memory pointer out of bounds",
-                            self.ic,
-                            self.ip,
+                            self.ic, self.ip,
                         ));
                     }
                     self.mp += 1;
@@ -60,8 +59,7 @@ impl Interpreter {
                     if self.mp == 0 {
                         return Err(format!(
                             "Instruction {} at {} attempted to move the memory pointer out of bounds (< 0)",
-                            self.ic,
-                            self.ip,
+                            self.ic, self.ip,
                         ));
                     }
                     self.mp -= 1;
