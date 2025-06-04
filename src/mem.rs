@@ -16,14 +16,14 @@ pub struct MemInfo {
 #[derive(Debug, Copy, Clone)]
 enum Layout {
     Uniform(usize),
-    StackMachine { heap: usize, stack: usize },
+    VM { heap: usize, stack: usize },
 }
 
 impl MemInfo {
     pub fn size(&self) -> usize {
         match self.layout {
             Layout::Uniform(size) => size,
-            Layout::StackMachine { heap, stack } => {
+            Layout::VM { heap, stack } => {
                 (heap * HEAP_CELL_SIZE) + HEAP_CELL_SIZE + (stack * STACK_CELL_SIZE)
             },
         }
@@ -31,7 +31,7 @@ impl MemInfo {
 
     pub fn start_pos(&self) -> usize {
         match self.layout {
-            Layout::StackMachine { heap, .. } => heap * HEAP_CELL_SIZE,
+            Layout::VM { heap, .. } => heap * HEAP_CELL_SIZE,
             _ => 0,
         }
     }
@@ -58,7 +58,7 @@ impl FromStr for MemInfo {
         let re = Regex::new(r#"(\d*)H(\d*)S"#).unwrap();
         if let Some(caps) = re.captures(s) {
             return Ok(Self {
-                layout: Layout::StackMachine {
+                layout: Layout::VM {
                     heap: caps[1].parse().unwrap(),
                     stack: caps[2].parse().unwrap(),
                 },
@@ -98,15 +98,25 @@ impl<'a> MemView<'a> {
                     row_start += Self::UNIFORM_BYTES_PER_ROW;
                 }
             },
-            Layout::StackMachine { heap, .. } => {
+            Layout::VM { heap, .. } => {
                 writeln!(self.buffer, "BF Addr | BF Memory  | V Addr | V Memory | V Text").unwrap();
 
-                let mut bf_idx = heap * HEAP_CELL_SIZE;
+                let heap_end = heap * HEAP_CELL_SIZE;
 
                 // Heap
+                let mut bf_idx = 0;
+                let mut heap_idx = heap;
+                while bf_idx < heap_end {
+                    let mut bf_end = bf_idx + (Self::VM_STACK_CELLS_PER_ROW * HEAP_CELL_SIZE);
+                    bf_end = bf_end.min(heap_end);
+
+                    heap_idx -= Self::VM_STACK_CELLS_PER_ROW.min(heap_idx);
+                    self.vm_mem_row(bf_idx, bf_end, HEAP_CELL_SIZE, heap_idx);
+                    bf_idx = bf_end;
+                }
 
                 // Home
-                self.vm_mem_row(bf_idx, bf_idx + HEAP_CELL_SIZE, HEAP_CELL_SIZE, 0xffff);
+                self.vm_mem_row(heap_end, heap_end + HEAP_CELL_SIZE, HEAP_CELL_SIZE, 0xffff);
                 bf_idx += HEAP_CELL_SIZE;
 
                 // Stack
@@ -141,7 +151,7 @@ impl<'a> MemView<'a> {
 
         writeln!(self.buffer, "{row_start:04X} |{bytes}  |{text}").unwrap();
     }
-    
+
     fn vm_mem_row(&mut self, bf_start: usize, bf_end: usize, cell_size: usize, vm_start: usize) {
         let mut idx = bf_start;
         let mut vm_indices = vec![];
@@ -155,7 +165,7 @@ impl<'a> MemView<'a> {
         let vm_bytes = self.to_hex_str(vm_indices.iter().copied());
         let vm_text = self.to_txt_str(vm_indices.iter().copied());
 
-        writeln!(self.buffer, "{bf_start:04X} |{bf_bytes}  | {vm_start:04X} | {vm_bytes} | {vm_text}").unwrap();
+        writeln!(self.buffer, "{bf_start:04X} |{bf_bytes:80}  | {vm_start:04X} | {vm_bytes:24} | {vm_text}").unwrap();
     }
 
     fn to_hex_str(&self, mem_indices: impl Iterator<Item = usize>) -> String {
