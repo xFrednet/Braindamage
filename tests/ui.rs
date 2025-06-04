@@ -1,5 +1,6 @@
 use assert_cmd::Command;
 use insta::{assert_snapshot, Settings};
+use regex::Regex;
 
 #[test]
 fn test_bf() {
@@ -9,13 +10,18 @@ fn test_bf() {
 
     insta::glob!("ui/*.bf", |path| {
         let file_stem = path.file_stem().unwrap().to_string_lossy();
-        let output = Command::cargo_bin("braindamage")
-            .unwrap()
-            .arg("run")
-            .arg("--file")
-            .arg(&path)
-            .output()
-            .unwrap();
+
+        let mut com = Command::cargo_bin("braindamage").unwrap();
+        com.arg("run").arg("--file").arg(&path);
+
+        let file_content = std::fs::read_to_string(path).unwrap();
+        let re = Regex::new(r"//@arg\s+([^=\n]+)=([^\n]+)").unwrap();
+        for cap in re.captures_iter(&file_content) {
+            com.arg(&cap[1]);
+            com.arg(&cap[2]);
+        }
+
+        let output = com.output().unwrap();
 
         let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();

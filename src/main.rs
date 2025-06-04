@@ -30,10 +30,6 @@ struct RunArgs {
     #[arg(short, long, value_parser = clap::value_parser!(mem::MemInfo), default_value = "32")]
     memory: mem::MemInfo,
 
-    /// The start position of the memory head.
-    #[arg(long, default_value = "100")]
-    start: usize,
-
     // FIXME: Make default value dependent on build profile.
     /// Enable Debug Mode
     #[arg(short, long, default_value = "true")]

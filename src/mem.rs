@@ -23,9 +23,7 @@ impl MemInfo {
     pub fn size(&self) -> usize {
         match self.layout {
             Layout::Uniform(size) => size,
-            Layout::VM { heap, stack } => {
-                (heap * HEAP_CELL_SIZE) + HEAP_CELL_SIZE + (stack * STACK_CELL_SIZE)
-            },
+            Layout::VM { heap, stack } => (heap * HEAP_CELL_SIZE) + HEAP_CELL_SIZE + (stack * STACK_CELL_SIZE),
         }
     }
 
@@ -37,7 +35,7 @@ impl MemInfo {
     }
 
     pub fn print_mem(&self, mem: &[u8], head_idx: usize) -> String {
-        let mut view =MemView {
+        let mut view = MemView {
             mem,
             head_idx,
             layout: self.layout,
@@ -165,7 +163,11 @@ impl<'a> MemView<'a> {
         let vm_bytes = self.to_hex_str(vm_indices.iter().copied());
         let vm_text = self.to_txt_str(vm_indices.iter().copied());
 
-        writeln!(self.buffer, "{bf_start:04X} |{bf_bytes:80}  | {vm_start:04X} | {vm_bytes:24} | {vm_text}").unwrap();
+        writeln!(
+            self.buffer,
+            "{bf_start:04X} |{bf_bytes:80}  | {vm_start:04X} | {vm_bytes:24} | {vm_text}"
+        )
+        .unwrap();
     }
 
     fn to_hex_str(&self, mem_indices: impl Iterator<Item = usize>) -> String {

@@ -1,6 +1,8 @@
 use std::io::Read;
 use std::io::Write;
 
+use regex::Regex;
+
 use crate::mem::MemInfo;
 
 pub struct Interpreter {
@@ -27,6 +29,9 @@ struct LoopInfo {
 }
 impl Interpreter {
     pub fn new(program: &str, mem_layout: MemInfo, debug: bool) -> Self {
+        let comment_rm = Regex::new(r"//[^\n]*\n").unwrap();
+        let program = comment_rm.replace_all(program, "").to_string();
+
         Self {
             program: program.chars().collect(),
             loops: vec![],
@@ -41,7 +46,7 @@ impl Interpreter {
 
     pub fn run(&mut self) -> Result<(), String> {
         while self.ip < self.program.len() {
-            self.ic += 1;
+            let mut valid_op = true;
 
             match self.program[self.ip] {
                 '+' => self.memory[self.mp] = self.memory[self.mp].wrapping_add(1),
@@ -105,7 +110,13 @@ impl Interpreter {
                 '?' if self.debug => {
                     self.dump_mem();
                 },
-                _ => {},
+                _ => {
+                    valid_op = false;
+                },
+            }
+
+            if valid_op {
+                self.ic += 1;
             }
             self.ip += 1;
         }

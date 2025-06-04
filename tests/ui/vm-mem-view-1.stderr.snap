@@ -1,0 +1,9 @@
+---
+source: tests/ui.rs
+expression: "&stderr"
+---
+### Memory after 3 instructions:
+```
+BF Addr | BF Memory  | V Addr | V Memory | V Text
+0000 | >03 00 00                                                                        | FFFF |  00                      | .
+```
