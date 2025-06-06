@@ -3,7 +3,8 @@ use clap::{Args, Parser, Subcommand};
 use std::path::{Path, PathBuf};
 
 mod interpreter;
-mod mem;
+pub mod mem;
+mod pass;
 
 #[derive(Parser, Debug)]
 #[command(name = "braindamage")]
@@ -24,6 +25,11 @@ struct RunArgs {
     #[arg(short, long, required = true)]
     file: PathBuf,
 
+    // FIXME: Using `--emit bf` or somthing like this would be cleaner
+    /// The output file for intermediate `.bf` files
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+
     // FIXME: This should take a string, to allow units like
     // 1kb or 10mb
     /// The amount of memory which should be provided by the interpreter
@@ -41,7 +47,17 @@ fn main() {
 
     match cli.command {
         Commands::Run(args) => {
-            let program = load_file(&args.file).unwrap();
+            let mut program = load_file(&args.file).unwrap();
+
+            if args.file.extension().map(|ext| ext == "wat-body").unwrap_or_default() {
+                program = pass::run_wat_passes(program);
+            }
+
+            program = pass::run_base_passes(program);
+            if let Some(output) = args.output {
+                std::fs::write(output, &program).unwrap();
+            }
+
             let mut inter = interpreter::Interpreter::new(&program, args.memory, args.debug);
             inter.run().unwrap();
         },

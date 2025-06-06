@@ -1,0 +1,15 @@
+//@arg --memory=0H8S
+
+// Proper start position for an empty stack
+>
+
+u8.const 1
+u8.const 2
+u8.const 3
+u8.const 4
+u8.const 5
+u8.const 6
+u8.const 7
+u8.const 8
+
+?

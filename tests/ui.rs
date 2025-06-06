@@ -5,13 +5,21 @@ use insta::{assert_snapshot, Settings};
 use regex::Regex;
 
 #[test]
-fn test_bf() {
+fn test_ui_bf() {
     insta::glob!("ui/bf/*.bf", |path| {
-        run_test_file(path);
+        run_test_file(path, &[]);
     });
 }
 
-fn run_test_file(path: &Path) {
+#[test]
+fn test_ui_wat_files() {
+    insta::glob!("ui/wat-body/*.wat-body", |path| {
+        let out_file = path.with_extension("bf").to_string_lossy().to_string();
+        run_test_file(path, &["--output", &out_file]);
+    });
+}
+
+fn run_test_file(path: &Path, extra_args: &[&str]) {
     let mut settings = Settings::new();
     settings.remove_snapshot_suffix();
     settings.set_prepend_module_to_snapshot(false);
@@ -27,6 +35,10 @@ fn run_test_file(path: &Path) {
     for cap in re.captures_iter(&file_content) {
         com.arg(&cap[1]);
         com.arg(&cap[2]);
+    }
+
+    if !extra_args.is_empty() {
+        com.args(extra_args);
     }
 
     let output = com.output().unwrap();

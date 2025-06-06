@@ -5,8 +5,8 @@ use std::usize;
 use itertools::Itertools;
 use regex::Regex;
 
-const HEAP_CELL_SIZE: usize = 3;
-const STACK_CELL_SIZE: usize = 2;
+pub const HEAP_CELL_SIZE: usize = 3;
+pub const STACK_CELL_SIZE: usize = 2;
 
 #[derive(Debug, Copy, Clone)]
 pub struct MemInfo {
