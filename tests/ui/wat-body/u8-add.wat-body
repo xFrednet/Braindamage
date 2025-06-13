@@ -1,0 +1,24 @@
+//@arg --memory=0H8S
+
+// Proper start position for an empty stack
+>
+
+u8.const 1
+u8.const 1
+u8.const 0
+u8.const 1
+u8.const 0
+?
+
+u8.add
+?
+
+u8.add
+u8.add
+u8.add
+?
+
+
+// Ideas:
+// * Div by 2 again and again
+// * Count up binary while subing number

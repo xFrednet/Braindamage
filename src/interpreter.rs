@@ -146,7 +146,7 @@ impl Interpreter {
                 },
                 _ => {},
             }
-            self.ip += 0;
+            self.ip += 1;
         }
     }
 

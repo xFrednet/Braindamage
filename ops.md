@@ -83,3 +83,42 @@
   >[>>] // goto head
   < // select data
 ]
+
+# Byte to bin 1 (byte dec -> bin inc)
+
+```brainfuck
+Precurser
++>++++>+<[->>++++<<]>>-<
+
+Setup
+- // Return
+>>+>>+>>+>>+>>+>>+>>+ // Claim cells
+[<<]
+
+Binary
+>[->>     // Sub
+  [->>]+ // Incs
+  <[<<]>
+]<+
+```
+
+# Byte to bin 2 (Div by 2)
+
+```
+Precurser
++>++>+<[->>++++<<]>
+
+>-<
+>+<
+
+>[          // While there is a number
+  [         // While the current cell
+    // Continue diving
+    -->
+    +<
+
+    // Check for end
+    +
+  ]>
+]
+```

@@ -1,0 +1,24 @@
+---
+source: tests/ui.rs
+expression: "&stderr"
+---
+### Memory after 25 instructions:
+```
+BF Addr | BF Memory  | V Addr | V Memory | V Text
+0000 |  00 00 00                                                                        | FFFF |  00                      | .
+0003 |  01 01  01 01  01 00  01 01 >01 00  00 00  00 00  00 00                          | 0000 |  01 01 00 01 00 00 00 00 | ........
+```
+
+### Memory after 32 instructions:
+```
+BF Addr | BF Memory  | V Addr | V Memory | V Text
+0000 |  00 00 00                                                                        | FFFF |  00                      | .
+0003 |  01 01  01 01  01 00 >01 01  00 00  00 00  00 00  00 00                          | 0000 |  01 01 00 01 00 00 00 00 | ........
+```
+
+### Memory after 79 instructions:
+```
+BF Addr | BF Memory  | V Addr | V Memory | V Text
+0000 |  00 00 00                                                                        | FFFF |  00                      | .
+0003 | >01 03  00 00  00 00  00 00  00 00  00 00  00 00  00 00                          | 0000 |  03 00 00 00 00 00 00 00 | ........
+```

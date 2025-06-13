@@ -52,24 +52,19 @@ impl Replacer for &ConstIntPass {
     }
 }
 
-pub(crate) fn run_wat_passes(mut src: String) -> String {
-    let const_int_pass = ConstIntPass::new();
-
-    for _ in 0..PASS_LIMIT {
-        let res = &src;
-        let res = const_int_pass.run(&res);
-
-        match res {
-            Cow::Borrowed(_) => {
-                return src;
-            },
-            Cow::Owned(next) => {
-                src = next;
-            },
-        }
+declare_regex_pass!(IntAddPass, r"u8\.add");
+impl Replacer for &IntAddPass {
+    fn replace_append(&mut self, _caps: &regex::Captures<'_>, dst: &mut String) {
+        // Comment
+        dst.push_str("// u8-add\n");
+        dst.push_str(">[-<<+>>]<-<<\n");
     }
+}
 
-    panic!("reached max pass iterations ({PASS_LIMIT}) final state:\n{src}");
+pub(crate) fn run_wat_passes(src: String) -> String {
+    let src = ConstIntPass::new().run(&src);
+    let src = IntAddPass::new().run(&src);
+    src.to_string()
 }
 
 declare_regex_pass!(Simplification, r"\+-|-\+|><|<>");

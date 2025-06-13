@@ -1,3 +1,6 @@
+# IDE files
+.vscode/
+
 # Test files:
 test.dmg
 test.bf
